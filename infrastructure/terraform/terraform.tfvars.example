@@ -1,0 +1,24 @@
+# Example Terraform variables file
+# Copy this file to terraform.tfvars and update with your values
+
+project_id            = "your-gcp-project-id"
+project_name          = "file-ops-platform"
+region                = "us-central1"
+zone                  = "us-central1-a"
+app_engine_location   = "us-central"
+backup_region         = "us-east1"
+notification_email    = "admin@yourcompany.com"
+environment           = "dev"
+
+# Optional configurations
+enable_apis              = true
+enable_monitoring        = true
+enable_security_scanning = true
+redis_memory_size_gb     = 1
+sql_tier                 = "db-f1-micro"
+backup_retention_days    = 7
+
+# Storage lifecycle settings
+storage_lifecycle_nearline_days = 30
+storage_lifecycle_coldline_days = 90
+storage_lifecycle_archive_days  = 365
