@@ -1,0 +1,18 @@
+runtime: python39
+service: processing-service
+
+env_variables:
+  PYTHON_ENV: production
+  GOOGLE_CLOUD_PROJECT: PROJECT_ID
+
+vpc_access_connector:
+  name: projects/PROJECT_ID/locations/us-central1/connectors/file-ops-platform-vpc-connector
+
+automatic_scaling:
+  min_instances: 0
+  max_instances: 10
+  target_cpu_utilization: 0.6
+
+handlers:
+- url: /.*
+  script: auto

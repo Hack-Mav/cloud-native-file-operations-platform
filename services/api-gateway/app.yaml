@@ -1,0 +1,70 @@
+runtime: nodejs20
+
+service: api-gateway
+
+instance_class: F2
+
+automatic_scaling:
+  min_instances: 1
+  max_instances: 10
+  target_cpu_utilization: 0.6
+  target_throughput_utilization: 0.6
+
+vpc_access_connector:
+  name: projects/PROJECT_ID/locations/REGION/connectors/CONNECTOR_NAME
+
+env_variables:
+  NODE_ENV: production
+  PORT: 8080
+  JWT_SECRET: your-jwt-secret-key
+  REDIS_URL: redis://REDIS_HOST:6379
+  DEFAULT_API_VERSION: v1
+  SUPPORTED_API_VERSIONS: v1,v2
+  ALLOWED_ORIGINS: https://your-domain.com,https://www.your-domain.com
+  
+  # Service discovery configuration
+  AUTH_SERVICE_HOST: auth-service-dot-PROJECT_ID.REGION_ID.r.appspot.com
+  AUTH_SERVICE_PORT: 443
+  FILE_SERVICE_HOST: file-service-dot-PROJECT_ID.REGION_ID.r.appspot.com
+  FILE_SERVICE_PORT: 443
+  PROCESSING_SERVICE_HOST: processing-service-dot-PROJECT_ID.REGION_ID.r.appspot.com
+  PROCESSING_SERVICE_PORT: 443
+  NOTIFICATION_SERVICE_HOST: notification-service-dot-PROJECT_ID.REGION_ID.r.appspot.com
+  NOTIFICATION_SERVICE_PORT: 443
+  
+  # Rate limiting configuration
+  RATE_LIMIT_WINDOW_MS: 900000  # 15 minutes
+  RATE_LIMIT_MAX_REQUESTS: 100
+  
+  # Load balancing strategy
+  LOAD_BALANCING_STRATEGY: round-robin
+
+handlers:
+- url: /health
+  script: auto
+  secure: always
+
+- url: /services/health
+  script: auto
+  secure: always
+  login: admin
+
+- url: /api/.*
+  script: auto
+  secure: always
+
+- url: /ws/.*
+  script: auto
+  secure: always
+
+- url: /.*
+  script: auto
+  secure: always
+
+network:
+  session_affinity: true
+
+resources:
+  cpu: 1
+  memory_gb: 1
+  disk_size_gb: 10

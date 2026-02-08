@@ -1,0 +1,14 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+celery==5.3.4
+redis==5.0.1
+google-cloud-storage==2.10.0
+google-cloud-datastore==2.19.0
+google-cloud-pubsub==2.18.4
+pillow==10.1.0
+python-multipart==0.0.6
+pydantic==2.5.0
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+aiofiles==23.2.1
+httpx==0.25.2
