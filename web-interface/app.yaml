@@ -1,0 +1,23 @@
+runtime: nodejs18
+service: default
+
+env_variables:
+  NODE_ENV: production
+  REACT_APP_API_URL: https://PROJECT_ID.appspot.com
+
+handlers:
+- url: /static
+  static_dir: dist/static
+
+- url: /(.*\.(json|ico|js|css|txt|svg|png|jpg|jpeg|gif|woff|woff2|ttf|eot))$
+  static_files: dist/\1
+  upload: dist/.*\.(json|ico|js|css|txt|svg|png|jpg|jpeg|gif|woff|woff2|ttf|eot)$
+
+- url: /.*
+  static_files: dist/index.html
+  upload: dist/index.html
+
+automatic_scaling:
+  min_instances: 0
+  max_instances: 5
+  target_cpu_utilization: 0.6
