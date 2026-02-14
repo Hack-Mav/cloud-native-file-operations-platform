@@ -1,0 +1,114 @@
+# Jaeger Configuration for File Operations Platform
+# This configuration is for Jaeger All-in-One deployment
+
+# Collector configuration
+collector:
+  # OTLP receiver (for OpenTelemetry)
+  otlp:
+    enabled: true
+    grpc:
+      host-port: 4317
+    http:
+      host-port: 4318
+
+  # Zipkin receiver
+  zipkin:
+    host-port: 9411
+
+  # Jaeger receivers
+  jaeger:
+    grpc:
+      host-port: 14250
+    thrift:
+      compact:
+        host-port: 6831
+      binary:
+        host-port: 6832
+    http:
+      host-port: 14268
+
+# Query service
+query:
+  base-path: /
+  static-files: ""
+  ui-config: |
+    {
+      "monitor": {
+        "menuEnabled": true
+      },
+      "dependencies": {
+        "menuEnabled": true
+      },
+      "archiveEnabled": true,
+      "tracking": {
+        "gaID": "",
+        "trackErrors": false
+      }
+    }
+
+# Processor configuration
+processor:
+  span:
+    max-queue-size: 10000
+    max-workers: 50
+
+# Storage configuration
+storage:
+  type: elasticsearch
+  elasticsearch:
+    server-urls: http://elasticsearch:9200
+    index-prefix: jaeger
+    tags-as-fields:
+      all: true
+    num-shards: 5
+    num-replicas: 1
+
+# Sampling strategies
+sampling:
+  strategies-file: /etc/jaeger/sampling.json
+  initial-sampling-probability: 1.0
+
+# Log level
+log-level: info
+
+# Metrics
+metrics-backend: prometheus
+metrics-http-route: /metrics
+
+---
+# Sampling Strategies (sampling.json)
+# This file should be mounted at /etc/jaeger/sampling.json
+#
+# {
+#   "service_strategies": [
+#     {
+#       "service": "auth-service",
+#       "type": "probabilistic",
+#       "param": 1.0
+#     },
+#     {
+#       "service": "file-service",
+#       "type": "probabilistic",
+#       "param": 0.5
+#     },
+#     {
+#       "service": "processing-service",
+#       "type": "probabilistic",
+#       "param": 0.5
+#     },
+#     {
+#       "service": "notification-service",
+#       "type": "probabilistic",
+#       "param": 1.0
+#     },
+#     {
+#       "service": "api-gateway",
+#       "type": "ratelimiting",
+#       "param": 100.0
+#     }
+#   ],
+#   "default_strategy": {
+#     "type": "probabilistic",
+#     "param": 0.5
+#   }
+# }

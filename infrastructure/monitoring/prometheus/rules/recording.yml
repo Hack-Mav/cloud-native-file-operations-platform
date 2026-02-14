@@ -1,0 +1,95 @@
+# Prometheus Recording Rules for File Operations Platform
+# These rules pre-compute commonly used metrics for faster queries
+groups:
+  # HTTP Metrics
+  - name: http_recording_rules
+    interval: 30s
+    rules:
+      # Request rate by service
+      - record: fileops:http_requests:rate5m
+        expr: sum(rate(fileops_http_requests_total[5m])) by (service)
+
+      # Error rate by service
+      - record: fileops:http_errors:rate5m
+        expr: sum(rate(fileops_http_requests_total{status_code=~"5.."}[5m])) by (service)
+
+      # Error percentage by service
+      - record: fileops:http_error_percentage:rate5m
+        expr: |
+          100 * (
+            sum(rate(fileops_http_requests_total{status_code=~"5.."}[5m])) by (service)
+            /
+            sum(rate(fileops_http_requests_total[5m])) by (service)
+          )
+
+      # Latency percentiles by service
+      - record: fileops:http_latency_p50:rate5m
+        expr: histogram_quantile(0.50, sum(rate(fileops_http_request_duration_seconds_bucket[5m])) by (le, service))
+
+      - record: fileops:http_latency_p95:rate5m
+        expr: histogram_quantile(0.95, sum(rate(fileops_http_request_duration_seconds_bucket[5m])) by (le, service))
+
+      - record: fileops:http_latency_p99:rate5m
+        expr: histogram_quantile(0.99, sum(rate(fileops_http_request_duration_seconds_bucket[5m])) by (le, service))
+
+      # Requests in flight
+      - record: fileops:http_requests_in_flight
+        expr: sum(fileops_http_requests_in_flight) by (service)
+
+  # Business Metrics
+  - name: business_recording_rules
+    interval: 30s
+    rules:
+      # Operation success rate
+      - record: fileops:operations_success_rate:rate5m
+        expr: |
+          sum(rate(fileops_operations_total{status="success"}[5m])) by (service, operation)
+          /
+          sum(rate(fileops_operations_total[5m])) by (service, operation)
+
+      # Operation throughput
+      - record: fileops:operations:rate5m
+        expr: sum(rate(fileops_operations_total[5m])) by (service, operation)
+
+      # Operation latency percentiles
+      - record: fileops:operation_latency_p95:rate5m
+        expr: histogram_quantile(0.95, sum(rate(fileops_operation_duration_seconds_bucket[5m])) by (le, operation))
+
+  # Resource Utilization
+  - name: resource_recording_rules
+    interval: 30s
+    rules:
+      # Memory usage in MB
+      - record: fileops:memory_usage_mb
+        expr: process_resident_memory_bytes / 1024 / 1024
+
+      # CPU usage percentage
+      - record: fileops:cpu_usage_percent
+        expr: 100 * rate(process_cpu_seconds_total[5m])
+
+      # File descriptor usage percentage
+      - record: fileops:fd_usage_percent
+        expr: 100 * process_open_fds / process_max_fds
+
+  # Availability and SLI
+  - name: sli_recording_rules
+    interval: 30s
+    rules:
+      # Service availability (based on successful health checks)
+      - record: fileops:service_availability:rate5m
+        expr: |
+          avg_over_time(up[5m])
+
+      # Request success rate (SLI for reliability)
+      - record: fileops:request_success_rate:rate5m
+        expr: |
+          sum(rate(fileops_http_requests_total{status_code!~"5.."}[5m])) by (service)
+          /
+          sum(rate(fileops_http_requests_total[5m])) by (service)
+
+      # Latency SLI (percentage of requests under 500ms)
+      - record: fileops:latency_sli:rate5m
+        expr: |
+          sum(rate(fileops_http_request_duration_seconds_bucket{le="0.5"}[5m])) by (service)
+          /
+          sum(rate(fileops_http_request_duration_seconds_count[5m])) by (service)
